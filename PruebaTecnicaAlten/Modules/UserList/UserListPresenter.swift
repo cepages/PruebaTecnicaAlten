@@ -39,6 +39,13 @@ final class UserListPresenter: UserListPresenterProtocol {
     func dismissError() {
         error = nil
     }
+    
+    func didSelectUser(_ user: User) {
+        if let view = view {
+            router?.navigateToUserDetail(from: view, with: user)
+        }
+    }
+    
 }
 
 extension UserListPresenter: UserListInteractorOutputProtocol {

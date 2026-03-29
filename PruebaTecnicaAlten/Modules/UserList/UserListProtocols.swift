@@ -27,9 +27,14 @@ protocol UserListPresenterProtocol {
     
     func viewDidLoad()
     func dismissError()
+    
+    func didSelectUser(_ user: User)
 }
 
 // MARK: - Router
 protocol UserListRouterProtocol {
+
     static func createModule() -> UIViewController
+    
+    func navigateToUserDetail(from view: UIViewController, with user: User)
 }

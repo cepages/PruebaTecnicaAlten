@@ -1,16 +1,17 @@
 //
-//  UserListView.swift
+//  UserDetailView.swift
 //  PruebaTecnicaAlten
 //
 //  Created by Carlos Pagés on 29/03/2026.
 //
 
+import Foundation
 import UIKit
 import Combine
 
-final class UserListView: UIViewController {
+final class UserDetailView: UIViewController {
     
-    var presenter: UserListPresenterProtocol?
+    var presenter: UserDetailPresenterProtocol?
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -20,11 +21,11 @@ final class UserListView: UIViewController {
         table.separatorStyle = .none
         table.rowHeight = UITableView.automaticDimension
         table.estimatedRowHeight = 100
-        table.register(UserListCell.self, forCellReuseIdentifier: UserListCell.reuseIdentifier)
+        table.register(PostCell.self, forCellReuseIdentifier: PostCell.reuseIdentifier)
         table.dataSource = self
-        table.delegate = self
         table.translatesAutoresizingMaskIntoConstraints = false
         return table
+        
     }()
     
     private lazy var activityIndicator: UIActivityIndicatorView = {
@@ -37,13 +38,14 @@ final class UserListView: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        setupHeader()
         bindPresenter()
         presenter?.viewDidLoad()
     }
     
     private func setupUI() {
-        title = "Users"
-        view.backgroundColor = .systemGroupedBackground
+        title = presenter?.user.name ?? "Details"
+        view.backgroundColor = .white
         
         view.addSubview(tableView)
         view.addSubview(activityIndicator)
@@ -53,22 +55,67 @@ final class UserListView: UIViewController {
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            
             activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
     }
     
+    private func setupHeader() {
+        guard let user = presenter?.user else { return }
+        
+        let headerView = UIView()
+        headerView.backgroundColor = .white
+        
+        let stackView = UIStackView()
+        
+        stackView.axis = .vertical
+        stackView.spacing = 8
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        
+        let labels = [
+            createLabel(text: "Name: \(user.name)", isBold: true),
+            createLabel(text: "Email: \(user.email)"),
+            createLabel(text: "Phone: \(user.phone)"),
+            createLabel(text: "Website: \(user.website)"),
+            createLabel(text: "Address: \(user.city)"),
+            createLabel(text: "Company: \(user.companyName)")
+        ]
+        
+        labels.forEach { stackView.addArrangedSubview($0) }
+        headerView.addSubview(stackView)
+        
+        NSLayoutConstraint.activate([
+            stackView.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 16),
+            stackView.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
+            stackView.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
+            stackView.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -16)
+        ])
+        
+        headerView.setNeedsLayout()
+        headerView.layoutIfNeeded()
+        
+        let size = headerView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
+        headerView.frame.size.height = size.height
+        
+        tableView.tableHeaderView = headerView
+    }
+    
+    private func createLabel(text: String, isBold: Bool = false) -> UILabel {
+        let label = UILabel()
+        label.text = text
+        label.font = isBold ? .boldSystemFont(ofSize: 18) : .systemFont(ofSize: 16)
+        label.textColor = isBold ? .label : .secondaryLabel
+        label.numberOfLines = 0
+        return label
+    }
+    
+    
     private func bindPresenter() {
-        presenter?.usersPublisher
+        presenter?.postsPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 self.tableView.reloadData()
-                
-                if let isEmpty = self.presenter?.users.isEmpty, !isEmpty {
-                    self.tableView.isHidden = false
-                }
             }
             .store(in: &cancellables)
             
@@ -78,13 +125,13 @@ final class UserListView: UIViewController {
                 guard let self = self else { return }
                 if isLoading {
                     self.activityIndicator.startAnimating()
-                    self.tableView.isHidden = true
                 } else {
                     self.activityIndicator.stopAnimating()
                 }
             }
             .store(in: &cancellables)
-            
+        
+        
         presenter?.errorPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] errorString in
@@ -98,30 +145,21 @@ final class UserListView: UIViewController {
                 }
             }
             .store(in: &cancellables)
+        
     }
 }
 
-// MARK: - UITableViewDataSource & UITableViewDelegate
-extension UserListView: UITableViewDataSource, UITableViewDelegate {
-    
+extension UserDetailView: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return presenter?.users.count ?? 0
+        return presenter?.posts.count ?? 0
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: UserListCell.reuseIdentifier, for: indexPath) as? UserListCell,
-              let user = presenter?.users[indexPath.row] else {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: PostCell.reuseIdentifier, for: indexPath) as? PostCell,
+              let post = presenter?.posts[indexPath.row] else {
             return UITableViewCell()
         }
-        cell.configure(with: user)
+        cell.configure(with: post)
         return cell
     }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if let user = presenter?.users[indexPath.row] {
-            presenter?.didSelectUser(user)
-        }
-    }
 }
-
-

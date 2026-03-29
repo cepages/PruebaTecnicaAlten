@@ -25,4 +25,9 @@ final class UserListRouter: UserListRouterProtocol {
         
         return view
     }
+    
+    func navigateToUserDetail(from view: UIViewController, with user: User) {
+        let detailView = UserDetailRouter.createModule(with: user)
+        view.navigationController?.pushViewController(detailView, animated: true)
+    }
 }

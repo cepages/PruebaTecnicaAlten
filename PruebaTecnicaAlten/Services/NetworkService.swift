@@ -15,7 +15,10 @@ enum NetworkError: Error {
 }
 
 protocol NetworkServiceProtocol {
+    
     func fetchUsers() async throws -> [UserDTO]
+    
+    func fetchPosts(for userId: Int) async throws -> [PostDTO]
 }
 
 final class NetworkService: NetworkServiceProtocol {
