@@ -49,4 +49,28 @@ final class NetworkService: NetworkServiceProtocol {
             throw NetworkError.requestFailed(error)
         }
     }
+    
+    func fetchPosts(for userId: Int) async throws -> [PostDTO] {
+        guard let url = URL(string: "https://jsonplaceholder.typicode.com/posts?userId=\(userId)") else {
+            throw NetworkError.invalidURL
+        }
+        
+        do {
+            let (data, response) = try await urlSession.data(from: url)
+            
+            guard let httpResponse = response as? HTTPURLResponse,
+                  (200...299).contains(httpResponse.statusCode) else {
+                throw NetworkError.invalidResponse
+            }
+            
+            do {
+                let posts = try JSONDecoder().decode([PostDTO].self, from: data)
+                return posts
+            } catch {
+                throw NetworkError.decodingFailed(error)
+            }
+        } catch {
+            throw NetworkError.requestFailed(error)
+        }
+    }
 }
