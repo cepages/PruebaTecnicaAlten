@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Combine
 
 // MARK: - Interactor
 protocol UserListInteractorInputProtocol {
@@ -18,7 +19,13 @@ protocol UserListInteractorOutputProtocol: AnyObject {
 
 // MARK: - Presenter
 protocol UserListPresenterProtocol {
-
+    var users: [User] { get }
+    var usersPublisher: AnyPublisher<[User], Never> { get }
+    var isLoadingPublisher: AnyPublisher<Bool, Never> { get }
+    var errorPublisher: AnyPublisher<String?, Never> { get }
+    
+    func viewDidLoad()
+    func dismissError()
 }
 
 // MARK: - Router

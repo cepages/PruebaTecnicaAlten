@@ -30,3 +30,17 @@ struct CompanyDTO: Codable {
     let catchPhrase: String
     let bs: String
 }
+
+extension UserDTO {
+    func toDomain() -> User {
+        return User(
+            id: id,
+            name: name,
+            email: email,
+            phone: phone,
+            website: website,
+            city: address.city,
+            companyName: company.name
+        )
+    }
+}
