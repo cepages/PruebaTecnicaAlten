@@ -10,11 +10,12 @@ import Combine
 
 // MARK: - Interactor
 protocol UserListInteractorInputProtocol {
-    
+    func fetchUsers()
 }
 
 protocol UserListInteractorOutputProtocol: AnyObject {
-
+    func didFetchUsers(_ users: [User])
+    func didFailToFetchUsers(with error: Error)
 }
 
 // MARK: - Presenter

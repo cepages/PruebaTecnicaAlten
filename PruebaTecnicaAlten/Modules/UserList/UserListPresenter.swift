@@ -33,14 +33,7 @@ final class UserListPresenter: UserListPresenterProtocol {
     
     func viewDidLoad() {
         isLoading = true
-        let mockUsers = [
-            User(id: 1, name: "Leanne Graham", email: "sincere@april.biz", phone: "1-770-736-8031 x56442", website: "hildegard.org", city: "Gwenborough", companyName: "Romaguera-Crona"),
-            User(id: 2, name: "Ervin Howell", email: "shanna@melissa.tv", phone: "010-692-6593 x09125", website: "anastasia.net", city: "Wisokyburgh", companyName: "Deckow-Crist")
-        ]
-        
-        users = mockUsers
-        isLoading = false
-
+        interactor?.fetchUsers()
     }
     
     func dismissError() {
@@ -49,6 +42,17 @@ final class UserListPresenter: UserListPresenterProtocol {
 }
 
 extension UserListPresenter: UserListInteractorOutputProtocol {
+    func didFetchUsers(_ users: [User]) {
+        self.users = users
+        isLoading = false
+        if users.isEmpty {
+            self.error = "No users found."
+        }
+    }
     
+    func didFailToFetchUsers(with error: Error) {
+        isLoading = false
+        self.error = error.localizedDescription
+    }
 }
 
